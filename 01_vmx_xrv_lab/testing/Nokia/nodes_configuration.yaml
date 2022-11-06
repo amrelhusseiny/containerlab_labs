@@ -1,0 +1,23 @@
+updates:
+  - path: "/interface[name=ethernet-1/5]"
+    value:
+      admin-state: enable
+      description: "to_P1"
+      subinterface:
+        - index: 0
+          admin-state: enable
+          ipv4:
+            address:
+              - ip-prefix: 100.100.12.0/31
+    encoding: "json_ietf"
+  - path: "/interface[name=ethernet-1/6]"
+    value:
+      admin-state: enable
+      description: "to_P2"
+      subinterface:
+        - index: 0
+          admin-state: enable
+          ipv4:
+            address:
+              - ip-prefix: 100.100.13.0/31
+    encoding: "json_ietf"

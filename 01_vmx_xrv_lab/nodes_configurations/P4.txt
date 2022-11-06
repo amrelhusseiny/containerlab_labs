@@ -1,0 +1,35 @@
+configure
+interface Loopback0 
+interface Loopback0 ipv4 address 100.64.0.4 255.255.255.255
+no interface GigabitEthernet0/0/0/1 shutdown
+interface GigabitEthernet0/0/0/1 description description to_P3_Link_05 
+interface GigabitEthernet0/0/0/1 ipv4 address 100.100.5.1 255.255.255.254
+interface GigabitEthernet0/0/0/1 lldp enable
+no interface GigabitEthernet0/0/0/2 shutdown
+interface GigabitEthernet0/0/0/2 description description to_P6_Link_09
+interface GigabitEthernet0/0/0/2 ipv4 address 100.100.9.1 255.255.255.254
+interface GigabitEthernet0/0/0/2 lldp enable
+no interface GigabitEthernet0/0/0/5 shutdown
+interface GigabitEthernet0/0/0/5 description description to_P2_Link_08
+interface GigabitEthernet0/0/0/5 ipv4 address 100.100.8.1 255.255.255.254
+interface GigabitEthernet0/0/0/5 lldp enable
+router isis core 
+router isis core is-type level-2-only
+router isis core net 49.0001.0064.0000.0004.00
+router isis core address-family ipv4 unicast 
+router isis core interface Loopback0 
+router isis core interface Loopback0 address-family ipv4 unicast
+router isis core interface GigabitEthernet0/0/0/1 
+router isis core interface GigabitEthernet0/0/0/1 address-family ipv4 unicast 
+router isis core interface GigabitEthernet0/0/0/1 address-family ipv4 unicast mpls ldp sync
+router isis core interface GigabitEthernet0/0/0/2 
+router isis core interface GigabitEthernet0/0/0/2 address-family ipv4 unicast 
+router isis core interface GigabitEthernet0/0/0/2 address-family ipv4 unicast mpls ldp sync
+router isis core interface GigabitEthernet0/0/0/5 
+router isis core interface GigabitEthernet0/0/0/5 address-family ipv4 unicast 
+router isis core interface GigabitEthernet0/0/0/5 address-family ipv4 unicast mpls ldp sync
+mpls ldp 
+mpls ldp interface GigabitEthernet0/0/0/1 
+mpls ldp interface GigabitEthernet0/0/0/2 
+mpls ldp interface GigabitEthernet0/0/0/5 
+commit

@@ -1,0 +1,282 @@
+data:
+  network-instances:
+    network-instance:
+      - name: default
+        protocols:
+          protocol:
+            - identifier: idx:ISIS
+              name: default
+              config:
+                identifier: idx:ISIS
+                name: default
+              isis:
+                global:
+                  config:
+                    level-capability: LEVEL_2
+                    net: 49.0001.0064.0000.0001.00
+                  nsr:
+                    config:
+                      enabled: false
+                  graceful-restart:
+                    config:
+                      enabled: false
+                  segment-routing:
+                    config:
+                      enabled: false
+                  lsp-bit:
+                    attached-bit:
+                      config:
+                        suppress-bit: false
+                interfaces:
+                  interface:
+                    - interface-id: Loopback0
+                      config:
+                        interface-id: Loopback0
+                        enabled: true
+                        passive: true
+                        hello-padding: STRICT
+                      interface-ref:
+                        config:
+                          interface: Loopback0
+                      afi-safi:
+                        af:
+                          afi-name: idx:IPV4
+                          safi-name: idx:UNICAST
+                          config:
+                            afi-name: idx:IPV4
+                            safi-name: idx:UNICAST
+                            enabled: true
+                    - interface-id: GigabitEthernet0/0/0/1
+                      config:
+                        interface-id: GigabitEthernet0/0/0/1
+                        enabled: true
+                        passive: false
+                        hello-padding: STRICT
+                      interface-ref:
+                        config:
+                          interface: GigabitEthernet0/0/0/1
+                      afi-safi:
+                        af:
+                          '#text': '--More-- Building configuration...'
+                          afi-name: idx:IPV4
+                          safi-name: idx:UNICAST
+                          config:
+                            afi-name: idx:IPV4
+                            safi-name: idx:UNICAST
+                            enabled: true
+            - identifier: idx:BGP
+              name: default
+              config:
+                identifier: idx:BGP
+                name: default
+              bgp:
+                global:
+                  config:
+                    as: 65000
+                    router-id: 100.64.0.1
+                  afi-safis:
+                    afi-safi:
+                      - afi-safi-name: idx:IPV4_UNICAST
+                        config:
+                          afi-safi-name: idx:IPV4_UNICAST
+                          enabled: true
+                      - afi-safi-name: idx:L3VPN_IPV4_UNICAST
+                        config:
+                          afi-safi-name: idx:L3VPN_IPV4_UNICAST
+                          enabled: true
+                neighbors:
+                  neighbor:
+                    neighbor-address: 100.64.0.2
+                    config:
+                      neighbor-address: 100.64.0.2
+                      peer-as: 65000
+                    transport:
+                      config:
+                        local-address: 100.64.0.1
+                    afi-safis:
+                      afi-safi:
+                        - afi-safi-name: idx:IPV4_UNICAST
+                          config:
+                            afi-safi-name: idx:IPV4_UNICAST
+                            enabled: true
+                        - afi-safi-name: idx:L3VPN_IPV4_UNICAST
+                          config:
+                            afi-safi-name: idx:L3VPN_IPV4_UNICAST
+                            enabled: true
+                          apply-policy:
+                            config:
+                              import-policy: ALLOW_ANY
+                              export-policy: ALLOW_ANY
+      - name: CustomerVRF
+        interfaces:
+          interface:
+            id: GigabitEthernet0/0/0/2
+            config:
+              id: GigabitEthernet0/0/0/2
+              interface: GigabitEthernet0/0/0/2
+              subinterface: 0
+        protocols:
+          protocol:
+            identifier: idx:BGP
+            name: default
+            config:
+              identifier: idx:BGP
+              name: default
+            bgp:
+              global:
+                config:
+                  as: 65000
+                  router-id: 100.100.20.1
+                afi-safis:
+                  afi-safi:
+                    afi-safi-name: idx:IPV4_UNICAST
+                    config:
+                      afi-safi-name: idx:IPV4_UNICAST
+                      enabled: true
+              neighbors:
+                neighbor:
+                  neighbor-address: 100.100.20.0
+                  config:
+                    neighbor-address: 100.100.20.0
+                    peer-as: 65001
+                  transport:
+                    config:
+                      local-address: 100.100.20.1
+                  afi-safis:
+                    afi-safi:
+                      afi-safi-name: idx:IPV4_UNICAST
+                      config:
+                        afi-safi-name: idx:IPV4_UNICAST
+                        enabled: true
+                      apply-policy:
+                        config:
+                          import-policy: ALLOW_ANY
+                          export-policy: ALLOW_ANY
+      - name: CustomerVRF
+        config:
+          name: CustomerVRF
+          route-distinguisher: '1:1'
+          enabled-address-families: idx:IPV4
+  interfaces:
+    interface:
+      - name: Loopback0
+        config:
+          name: Loopback0
+          type: idx:softwareLoopback
+          enabled: true
+          description: PE1_Loopback
+        subinterfaces:
+          subinterface:
+            index: 0
+            ipv4:
+              addresses:
+                address:
+                  ip: 100.64.0.1
+                  config:
+                    ip: 100.64.0.1
+                    prefix-length: 32
+      - name: MgmtEth0/RP0/CPU0/0
+        config:
+          name: MgmtEth0/RP0/CPU0/0
+          type: idx:ethernetCsmacd
+          enabled: true
+        ethernet:
+          config:
+            auto-negotiate: false
+        subinterfaces:
+          subinterface:
+            index: 0
+            ipv4:
+              addresses:
+                address:
+                  ip: 10.0.0.15
+                  config:
+                    ip: 10.0.0.15
+                    prefix-length: 24
+      - name: GigabitEthernet0/0/0/0
+        config:
+          name: GigabitEthernet0/0/0/0
+          type: idx:ethernetCsmacd
+          enabled: false
+        ethernet:
+          config:
+            auto-negotiate: false
+      - name: GigabitEthernet0/0/0/1
+        config:
+          name: GigabitEthernet0/0/0/1
+          type: idx:ethernetCsmacd
+          enabled: true
+          description: to_PE2
+        ethernet:
+          config:
+            auto-negotiate: false
+        subinterfaces:
+          subinterface:
+            index: 0
+            ipv4:
+              addresses:
+                address:
+                  ip: 100.100.10.0
+                  config:
+                    ip: 100.100.10.0
+                    prefix-length: 31
+      - name: GigabitEthernet0/0/0/2
+        config:
+          name: GigabitEthernet0/0/0/2
+          type: idx:ethernetCsmacd
+          enabled: true
+          description: to_CE1
+        ethernet:
+          config:
+            auto-negotiate: false
+        subinterfaces:
+          subinterface:
+            index: 0
+            ipv4:
+              addresses:
+                address:
+                  ip: 100.100.20.1
+                  config:
+                    ip: 100.100.20.1
+                    prefix-length: 31
+  lacp:
+    interfaces:
+      interface:
+        - name: Loopback0
+          config:
+            name: Loopback0
+        - name: MgmtEth0/RP0/CPU0/0
+          config:
+            name: MgmtEth0/RP0/CPU0/0
+        - name: GigabitEthernet0/0/0/0
+          config:
+            name: GigabitEthernet0/0/0/0
+        - name: GigabitEthernet0/0/0/1
+          config:
+            name: GigabitEthernet0/0/0/1
+        - name: GigabitEthernet0/0/0/2
+          config:
+            name: GigabitEthernet0/0/0/2
+  lldp:
+    config:
+      enabled: false
+    interfaces:
+      interface:
+        name: GigabitEthernet0/0/0/1
+        config:
+          name: GigabitEthernet0/0/0/1
+          enabled: true
+  routing-policy:
+    policy-definitions:
+      policy-definition:
+        name: ALLOW_ANY
+        config:
+          name: ALLOW_ANY
+        statements:
+          statement:
+            name: statement-1666990977588344
+            config:
+              name: statement-1666990977588344
+            actions:
+              config:
+                accept-route: ''

@@ -1,0 +1,30 @@
+name: 02_xrv_gnmi
+
+topology:
+  nodes:
+    # IOS-XE CEs
+    CE1:
+        kind: vr-csr
+        image: vrnetlab/vr-csr:17.03.02
+    CE2:
+        kind: vr-csr
+        image: vrnetlab/vr-csr:17.03.02
+    PE1:
+        kind: vr-xrv9k
+        image: vrnetlab/vr-xrv9k:7.2.1
+    PE2:
+        kind: vr-xrv9k
+        image: vrnetlab/vr-xrv9k:7.2.1
+    PC1:
+        kind: linux
+        image: praqma/network-multitool:latest
+    PC2:
+        kind: linux
+        image: praqma/network-multitool:latest
+    
+  links:
+    - endpoints: ["PC1:eth1", "CE1:eth2"]
+    - endpoints: ["CE1:eth3", "PE1:eth3"]
+    - endpoints: ["PE1:eth2", "PE2:eth2"]
+    - endpoints: ["PE2:eth3", "CE2:eth3"]
+    - endpoints: ["CE2:eth2", "PC2:eth1"]

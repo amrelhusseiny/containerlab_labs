@@ -1,0 +1,13 @@
+# updates:
+#   - path: openconfig-interfaces:interfaces/interface[name="GigabitEthernet0/0/0/3"]/config/enabled
+#     value: true
+#     encoding: "json_ietf"
+# updates:
+#   - path: openconfig-interfaces:/interfaces/interface[name="GigabitEthernet0/0/0/3"]/config/description
+#     value: tesinggg
+#     encoding: "json_ietf"
+updates:
+  - path: oc-if:interfaces/interface[name="GigabitEthernet0/0/0/3"]/config/enabled
+    value: true
+    encoding: "json_ietf"
+

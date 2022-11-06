@@ -1,0 +1,37 @@
+name: 02_xrv_gnmi
+
+topology:
+  nodes:
+    # FRR Open CEs
+    CE1:
+        kind: linux
+        image: frrouting/frr:v7.5.1
+        binds: 
+            - 03_CE1_FRR_daemons:/etc/frr/daemons
+            - 03_CE1_FRR_conf:/etc/frr/frr.conf
+    CE2:
+        kind: linux
+        image: frrouting/frr:v7.5.1
+        binds: 
+            - 03_CE1_FRR_daemons:/etc/frr/daemons
+            - 03_CE2_FRR_conf:/etc/frr/frr.conf
+    # Backbone PEs (ISIS/MP-BGP/MPLS)
+    PE1:
+        kind: vr-xrv9k
+        image: vrnetlab/vr-xrv9k:7.2.1
+    PE2:
+        kind: vr-xrv9k
+        image: vrnetlab/vr-xrv9k:7.2.1
+    PC1:
+        kind: linux
+        image: praqma/network-multitool:latest
+    PC2:
+        kind: linux
+        image: praqma/network-multitool:latest
+    
+  links:
+    - endpoints: ["PC1:eth1", "CE1:eth2"]
+    - endpoints: ["CE1:eth3", "PE1:eth3"]
+    - endpoints: ["PE1:eth2", "PE2:eth2"]
+    - endpoints: ["PE2:eth3", "CE2:eth3"]
+    - endpoints: ["CE2:eth2", "PC2:eth1"]

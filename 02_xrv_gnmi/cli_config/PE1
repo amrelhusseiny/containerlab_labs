@@ -1,0 +1,74 @@
+hostname PE1
+username admin 
+username admin group root-lr
+username admin group cisco-support
+username admin secret 5 $1$wuqn$UwxypHt6.ggDI0.6buKfa.
+vrf CustomerVRF 
+vrf CustomerVRF rd 1:1
+vrf CustomerVRF address-family ipv4 unicast 
+vrf CustomerVRF address-family ipv4 unicast import route-target 1:1
+vrf CustomerVRF address-family ipv4 unicast export route-target 1:1
+call-home service active
+call-home contact smart-licensing
+call-home profile CiscoTAC-1 
+call-home profile CiscoTAC-1 active
+call-home profile CiscoTAC-1 destination transport-method http
+interface Loopback0 
+interface Loopback0 description PE1_Loopback 
+interface Loopback0 ipv4 address 100.64.0.1 255.255.255.255
+interface MgmtEth0/RP0/CPU0/0 ipv4 address 10.0.0.15 255.255.255.0
+interface GigabitEthernet0/0/0/0 shutdown
+interface GigabitEthernet0/0/0/1 description to_PE2 
+interface GigabitEthernet0/0/0/1 ipv4 address 100.100.10.0 255.255.255.254
+interface GigabitEthernet0/0/0/1 lldp enable
+interface GigabitEthernet0/0/0/2 description to_CE1 
+interface GigabitEthernet0/0/0/2 vrf CustomerVRF
+interface GigabitEthernet0/0/0/2 ipv4 address 100.100.20.1 255.255.255.254
+interface preconfigure GigabitEthernet0/0/0/3 
+interface preconfigure GigabitEthernet0/0/0/3 shutdown
+!
+route-policy AcceptAny
+  pass
+end-policy
+!
+router isis default 
+router isis default is-type level-2-only
+router isis default net 49.0001.0064.0000.0001.00
+router isis default interface Loopback0 
+router isis default interface Loopback0 passive
+router isis default interface Loopback0 address-family ipv4 unicast 
+router isis default interface GigabitEthernet0/0/0/1 
+router isis default interface GigabitEthernet0/0/0/1 address-family ipv4 unicast 
+router bgp 65000 
+router bgp 65000 bgp router-id 100.64.0.1
+router bgp 65000 address-family ipv4 unicast 
+router bgp 65000 address-family vpnv4 unicast 
+router bgp 65000 neighbor 100.64.0.2 
+router bgp 65000 neighbor 100.64.0.2 remote-as 65000
+router bgp 65000 neighbor 100.64.0.2 local address 100.64.0.1
+router bgp 65000 neighbor 100.64.0.2 address-family ipv4 unicast 
+router bgp 65000 neighbor 100.64.0.2 address-family ipv4 unicast next-hop-self
+router bgp 65000 neighbor 100.64.0.2 address-family vpnv4 unicast 
+router bgp 65000 neighbor 100.64.0.2 address-family vpnv4 unicast next-hop-self
+router bgp 65000 vrf CustomerVRF 
+router bgp 65000 vrf CustomerVRF bgp router-id 100.100.20.1
+router bgp 65000 vrf CustomerVRF address-family ipv4 unicast 
+router bgp 65000 vrf CustomerVRF address-family ipv4 unicast redistribute connected
+router bgp 65000 vrf CustomerVRF address-family ipv4 unicast redistribute static
+router bgp 65000 vrf CustomerVRF neighbor 100.100.20.0 
+router bgp 65000 vrf CustomerVRF neighbor 100.100.20.0 remote-as 65001
+router bgp 65000 vrf CustomerVRF neighbor 100.100.20.0 local address 100.100.20.1
+router bgp 65000 vrf CustomerVRF neighbor 100.100.20.0 address-family ipv4 unicast 
+router bgp 65000 vrf CustomerVRF neighbor 100.100.20.0 address-family ipv4 unicast route-policy AcceptAny in
+router bgp 65000 vrf CustomerVRF neighbor 100.100.20.0 address-family ipv4 unicast route-policy AcceptAny out
+router bgp 65000 vrf CustomerVRF neighbor 100.100.20.0 address-family ipv4 unicast as-override
+mpls ldp 
+mpls ldp interface GigabitEthernet0/0/0/1 
+grpc port 57400
+grpc no-tls
+grpc 
+xml agent tty 
+netconf-yang agent ssh
+ssh server v2
+ssh server netconf vrf default
+end

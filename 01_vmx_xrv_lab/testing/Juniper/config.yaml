@@ -1,0 +1,5 @@
+targets:
+  clab-01_vmx_xrv_lab_topology-PE1:57400:
+    username: admin
+    password: admin@123
+    insecure: true

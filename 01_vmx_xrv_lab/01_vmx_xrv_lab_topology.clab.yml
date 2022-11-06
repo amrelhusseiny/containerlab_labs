@@ -1,0 +1,55 @@
+name: 01_vmx_xrv_lab_topology
+
+topology:
+  nodes:
+    PE1:
+        kind: vr-vmx
+        image: vrnetlab/vr-vmx:21.2R1.10
+        startup-config: nodes_configurations/PE1.txt
+    P1 :
+        kind: vr-vmx
+        image: vrnetlab/vr-vmx:21.2R1.10
+        startup-config: nodes_configurations/P1.txt
+    P2 :
+        kind: vr-vmx
+        image: vrnetlab/vr-vmx:21.2R1.10
+        startup-config: nodes_configurations/P2.txt
+    P3 :
+        kind: vr-vmx
+        image: vrnetlab/vr-vmx:21.2R1.10
+        startup-config: nodes_configurations/P3.txt
+    P4 :
+        kind: vr-xrv9k
+        image: vrnetlab/vr-xrv9k:7.2.1
+        startup-config: nodes_configurations/P4.txt
+    P5 :
+        kind: vr-vmx
+        image: vrnetlab/vr-vmx:21.2R1.10
+        startup-config: nodes_configurations/P5.txt
+    P6 :
+        kind: vr-xrv9k
+        image: vrnetlab/vr-xrv9k:7.2.1
+        startup-config: nodes_configurations/P6.txt
+    PE2:
+        kind: vr-xrv9k
+        image: vrnetlab/vr-xrv9k:7.2.1
+        startup-config: nodes_configurations/PE2.txt
+    PE3:
+        kind: srl
+        image: ghcr.io/nokia/srlinux:latest
+
+  links:
+    - endpoints: ["PE1:eth2", "P1:eth2"]
+    - endpoints: ["PE1:eth3", "P5:eth3"]
+    - endpoints: ["P1:eth4", "P2:eth4"]
+    - endpoints: ["P1:eth5", "P3:eth5"]
+    - endpoints: ["P3:eth2", "P4:eth2"]
+    - endpoints: ["P3:eth4", "P5:eth4"]
+    - endpoints: ["P5:eth2", "P6:eth2"]
+    - endpoints: ["P2:eth6", "P4:eth6"]
+    - endpoints: ["P2:eth5", "PE2:eth5"]
+    - endpoints: ["P6:eth3", "P4:eth3"]
+    - endpoints: ["P6:eth4", "PE2:eth4"]
+    - endpoints: ["PE3:e1-5", "P1:eth6"]
+    - endpoints: ["PE3:e1-6", "P2:eth7"]
+

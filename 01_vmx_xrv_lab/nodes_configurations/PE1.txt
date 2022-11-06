@@ -1,0 +1,34 @@
+configure private
+set interfaces ge-0/0/1 description to_P1_Link_01
+set interfaces ge-0/0/1 unit 0 family inet address 100.100.1.0/31
+set interfaces ge-0/0/1 unit 0 family iso
+set interfaces ge-0/0/1 unit 0 family mpls
+
+set interfaces ge-0/0/2 description to_P5_Link_02
+set interfaces ge-0/0/2 unit 0 family inet address 100.100.2.0/31
+set interfaces ge-0/0/2 unit 0 family iso
+set interfaces ge-0/0/2 unit 0 family mpls
+
+set interfaces lo0 unit 0 family inet address 100.64.0.11/32
+set interfaces lo0 unit 0 family iso address 49.0001.0064.0000.0011.00
+
+set protocols isis interface ge-0/0/1.0
+set protocols isis interface ge-0/0/2.0
+set protocols isis interface lo0.0 passive
+
+set protocols isis interface ge-0/0/1.0 level 1 disable
+set protocols isis interface ge-0/0/2.0 level 1 disable
+set protocols isis interface lo0.0 level 1 disable
+
+set protocols mpls interface ge-0/0/1.0 
+set protocols mpls interface ge-0/0/2.0 
+
+set routing-options router-id 100.64.0.11
+
+set protocols ldp longest-match
+set protocols ldp interface ge-0/0/1.0
+set protocols ldp interface ge-0/0/2.0
+set protocols ldp interface lo0.0
+
+set protocols lldp interface all 
+commit

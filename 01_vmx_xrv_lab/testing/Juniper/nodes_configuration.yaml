@@ -1,0 +1,12 @@
+updates:
+  - path: /configuration/interfaces/interface[name=ge-0/0/2]
+    value: 
+      mtu: 9000
+      unit:
+      - description: to_P5
+        family:
+          inet:
+            address:
+            - name: 100.100.2.0/31
+        name: 0
+
