@@ -1,4 +1,4 @@
-# 02_xrv_pe1_gnmi.yml
+# 02_xrv_PE2_gnmi.yml
 updates:
   # Interface GigabitEthernet0/0/0/1 Config
   - path: 'Cisco-IOS-XR-ifmgr-cfg:/interface-configurations/interface-configuration[active="act"][interface-name="GigabitEthernet0/0/0/1"]'
@@ -13,7 +13,7 @@ updates:
   # Interface GigabitEthernet0/0/0/2 Config
   - path: 'Cisco-IOS-XR-ifmgr-cfg:/interface-configurations/interface-configuration[active="act"][interface-name="GigabitEthernet0/0/0/2"]'
     value:
-      description: to_CE2
+      description: to_CE1
       Cisco-IOS-XR-ipv4-io-cfg:ipv4-network:
         addresses:
           primary:
@@ -122,10 +122,32 @@ updates:
                     config:
                       local-address: 100.64.0.2
 
+  # Configuring Next Hop Self will be deployed using Cisco's Yangs
+  # As no similar in OpenConfig 
+  # Enablig Next-Hop-Self on both IPv4 and VPNv4 Families (No RR used)
+  - path: 'Cisco-IOS-XR-ipv4-bgp-cfg://bgp/instance[instance-name="default"]/instance-as[as=0]/four-byte-as[as=65000]/default-vrf/bgp-entity/neighbors/neighbor[neighbor-address="100.64.0.1"]/neighbor-afs/neighbor-af'
+    value:
+      - af-name: ipv4-unicast
+        activate: ''
+        next-hop-self: true
+      - af-name: vpnv4-unicast
+        activate: ''
+        next-hop-self: true
+
   # ================================================================================
   # VRF Configuration 
   # ================================================================================
   # Following 3 parts can be combined in one call, but i preferred to separate them to be easier to understand 
+  
+  # Configuring Allow all Route Policy , IOS-XR by default denies all if no Route
+  # Policy configured in eBGP session 
+  - path: 'Cisco-IOS-XR-policy-repository-cfg:/routing-policy'
+    value:
+      route-policies:
+        route-policy: 
+          route-policy-name: AcceptAny
+          rpl-route-policy: "route-policy AcceptAny\n  pass\nend-policy\n"
+            
   # Create VRF
   - path: 'openconfig-network-instance:/network-instances'
     value:
@@ -146,6 +168,7 @@ updates:
             config: 
               protocol: BGP
               address-family: openconfig-types:IPV4
+
 
   # Non OpenConfig available configuration
   # Doing redistribute Connected into VRF , using Cisco's Yangs, not available in OpenConfig: 
@@ -170,7 +193,7 @@ updates:
     value:
       protocols:
         protocol:
-          - identifier: openconfig-policy-types:BGP
+          - identifier: BGP
             name: default # this points to the primary RIB , if you change it will created separate RIB
             bgp:
               global:
@@ -195,6 +218,15 @@ updates:
                     transport:
                       config:
                         local-address: 100.100.30.0
+
+  # Applying: (Unable to same using OpenConfig)
+  # 1) Import & Export Policy with eBGP Peer (CE)
+  # 2) Applying AS-Override (cuz both CEs are same AS) 
+  - path: 'Cisco-IOS-XR-ipv4-bgp-cfg:/bgp/instance[instance-name="default"]/instance-as[as="0"]/four-byte-as[as="65000"]/vrfs/vrf[vrf-name="CustomerVRF"]/vrf-neighbors/vrf-neighbor[neighbor-address="100.100.30.1"]/vrf-neighbor-afs/vrf-neighbor-af[af-name="ipv4-unicast"]/'
+    value:
+      route-policy-in: AcceptAny
+      route-policy-out: AcceptAny
+      as-override: true
 
   # To configure Route Target import and export, we will use the Cisco Specific Yang "Cisco-IOS-XR-infra-rsi-cfg.yang": 
   # Import Route target
