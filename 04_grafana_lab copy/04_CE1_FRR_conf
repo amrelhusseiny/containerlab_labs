@@ -1,0 +1,19 @@
+interface eth2
+ ip address 10.0.10.1/24
+!
+interface eth3
+ ip address 100.100.20.0/31
+!
+router bgp 65001
+ bgp router-id 100.100.20.0
+ neighbor 100.100.20.1 remote-as 65000
+ !
+ address-family ipv4 unicast
+  redistribute connected
+  redistribute static
+  neighbor 100.100.20.1 soft-reconfiguration inbound
+  neighbor 100.100.20.1 route-map ACCEPT-ANY in
+  neighbor 100.100.20.1 route-map ACCEPT-ANY out
+ exit-address-family
+!
+route-map ACCEPT-ANY permit 1
