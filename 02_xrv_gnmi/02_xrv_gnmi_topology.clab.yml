@@ -5,10 +5,10 @@ topology:
     # IOS-XE CEs
     CE1:
         kind: vr-csr
-        image: vrnetlab/vr-csr:17.03.02
+        image: vrnetlab/vr-csr:17.03.05
     CE2:
         kind: vr-csr
-        image: vrnetlab/vr-csr:17.03.02
+        image: vrnetlab/vr-csr:17.03.05
     PE1:
         kind: vr-xrv9k
         image: vrnetlab/vr-xrv9k:7.2.1

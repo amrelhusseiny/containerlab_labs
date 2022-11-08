@@ -1,0 +1,279 @@
+# 02_xrv_PE2_gnmi.yml
+updates:
+  # Interface GigabitEthernet0/0/0/1 Config
+  - path: 'Cisco-IOS-XR-ifmgr-cfg:/interface-configurations/interface-configuration[active="act"][interface-name="GigabitEthernet0/0/0/1"]'
+    value:
+      description: to_PE1
+      Cisco-IOS-XR-ipv4-io-cfg:ipv4-network:
+        addresses:
+          primary:
+            address: 100.100.10.1
+            netmask: 255.255.255.254
+    encoding: "json_ietf"
+  # Interface GigabitEthernet0/0/0/2 Config
+  - path: 'Cisco-IOS-XR-ifmgr-cfg:/interface-configurations/interface-configuration[active="act"][interface-name="GigabitEthernet0/0/0/2"]'
+    value:
+      description: to_CE1
+      Cisco-IOS-XR-ipv4-io-cfg:ipv4-network:
+        addresses:
+          primary:
+            address: 100.100.30.0
+            netmask: 255.255.255.254
+    encoding: "json_ietf"
+  # Interface Loopback0 Config
+  - path: 'Cisco-IOS-XR-ifmgr-cfg:/interface-configurations/interface-configuration[active="act"][interface-name="Loopback0"]'
+    value:
+      description: PE2_Loopback
+      interface-virtual: null
+      Cisco-IOS-XR-ipv4-io-cfg:ipv4-network:
+        addresses:
+          primary:
+            address: 100.64.0.2
+            netmask: 255.255.255.255
+    encoding: "json_ietf"
+
+  # ================================================================================
+  # IS-IS 
+  # ================================================================================
+  # Configuring ISIS using OpenConfig
+  - path: 'openconfig-network-instance:/network-instances/network-instance[name="default"]/protocols'
+    value:
+      protocol:
+        identifier: openconfig-policy-types:ISIS
+        name: default # This is the RIB name rather than a VRF name 
+        isis:
+          global:
+            config:
+              level-capability: LEVEL_2
+              net:
+              - 49.0001.0064.0000.0002.00
+            afi-safi:
+              af: 
+                - afi-name: openconfig-isis-types:IPV4
+                  safi-name: openconfig-isis-types:UNICAST
+          interfaces:
+            interface:
+              - interface-id: Loopback0
+                config:
+                  passive: true
+                afi-safi:
+                  af:
+                    - afi-name: openconfig-isis-types:IPV4
+                      safi-name: openconfig-isis-types:UNICAST
+                      config: 
+                        enabled: true
+              - interface-id: GigabitEthernet0/0/0/1
+                afi-safi:
+                  af:
+                    - afi-name: openconfig-isis-types:IPV4
+                      safi-name: openconfig-isis-types:UNICAST
+                      config: 
+                        enabled: true
+
+  # ================================================================================
+  # MPLS & LDP
+  # ================================================================================
+  # Note : since I am usinf IOS-XR 6.5.1 , only Cisco Yang models supported for MPLS & LDP
+  #        Openconfig Yangs are not supported 
+  - path: 'Cisco-IOS-XR-mpls-ldp-cfg:/mpls-ldp'
+    value:
+      enable: [null]
+      default-vrf:
+        interfaces:
+          interface:
+            - interface-name: GigabitEthernet0/0/0/1
+              enable: [null]
+
+  # ================================================================================
+  # MP-BGP (We are using point to point peering instead of RR)
+  # ================================================================================
+  - path: 'openconfig-network-instance:/network-instances/network-instance[name="default"]/protocols'
+    value:
+      protocol:
+        - identifier: openconfig-policy-types:BGP
+          name: default
+          bgp:
+            global:
+              config:
+                as: 65000
+                router-id: 100.64.0.2
+              afi-safis:
+                afi-safi:
+                  - afi-safi-name: openconfig-bgp-types:L3VPN_IPV4_UNICAST
+                    config:
+                      enabled: true
+                  - afi-safi-name: openconfig-bgp-types:IPV4_UNICAST
+                    config:
+                      enabled: true
+            neighbors:
+              neighbor:
+                - neighbor-address: 100.64.0.1
+                  config:
+                    peer-as: 65000
+                  afi-safis:
+                    afi-safi:
+                      - afi-safi-name: openconfig-bgp-types:L3VPN_IPV4_UNICAST
+                        config:
+                          enabled: true
+                      - afi-safi-name: openconfig-bgp-types:IPV4_UNICAST
+                        config:
+                          enabled: true
+                  transport:
+                    config:
+                      local-address: 100.64.0.2
+
+  # Configuring Next Hop Self will be deployed using Cisco's Yangs
+  # As no similar in OpenConfig 
+  # Enablig Next-Hop-Self on both IPv4 and VPNv4 Families (No RR used)
+  - path: 'Cisco-IOS-XR-ipv4-bgp-cfg://bgp/instance[instance-name="default"]/instance-as[as=0]/four-byte-as[as=65000]/default-vrf/bgp-entity/neighbors/neighbor[neighbor-address="100.64.0.1"]/neighbor-afs/neighbor-af'
+    value:
+      - af-name: ipv4-unicast
+        activate: ''
+        next-hop-self: true
+      - af-name: vpnv4-unicast
+        activate: ''
+        next-hop-self: true
+
+  # ================================================================================
+  # VRF Configuration 
+  # ================================================================================
+  # Following 3 parts can be combined in one call, but i preferred to separate them to be easier to understand 
+  
+  # Configuring Allow all Route Policy , IOS-XR by default denies all if no Route
+  # Policy configured in eBGP session 
+  - path: 'Cisco-IOS-XR-policy-repository-cfg:/routing-policy'
+    value:
+      route-policies:
+        route-policy: 
+          route-policy-name: AcceptAny
+          rpl-route-policy: "route-policy AcceptAny\n  pass\nend-policy\n"
+            
+  # Create VRF
+  - path: 'openconfig-network-instance:/network-instances'
+    value:
+      network-instance:
+        - name: CustomerVRF
+          config: 
+            name: CustomerVRF
+            route-distinguisher: 1:1
+
+  - path: 'openconfig-network-instance:/network-instances/network-instance[name="CustomerVRF"]'
+    value:
+      config:
+        enabled-address-families: openconfig-types:IPV4
+      tables:
+        table:
+          - protocol: BGP
+            address-family: IPV4
+            config: 
+              protocol: BGP
+              address-family: openconfig-types:IPV4
+
+
+  # Non OpenConfig available configuration
+  # Doing redistribute Connected into VRF , using Cisco's Yangs, not available in OpenConfig: 
+  - path: 'Cisco-IOS-XR-ipv4-bgp-cfg:/bgp/instance[instance-name="default"]/instance-as[as=0]/four-byte-as[as=65000]/vrfs/vrf[vrf-name="CustomerVRF"]/vrf-global/vrf-global-afs/vrf-global-af[af-name="ipv4-unicast"]/connected-routes'
+    value: null
+  # Doing redistribute Static into VRF , using Cisco's Yangs, not available in OpenConfig: 
+  - path: 'Cisco-IOS-XR-ipv4-bgp-cfg:/bgp/instance[instance-name="default"]/instance-as[as=0]/four-byte-as[as=65000]/vrfs/vrf[vrf-name="CustomerVRF"]/vrf-global/vrf-global-afs/vrf-global-af[af-name="ipv4-unicast"]/static-routes'
+    value: null
+
+  # Assinging interfaces to VRF after VRF creation 
+  - path: 'openconfig-network-instance:/network-instances/network-instance[name="CustomerVRF"]'
+    value:
+      interfaces:
+        interface:
+          id: GigabitEthernet0/0/0/2
+          config:
+            id: GigabitEthernet0/0/0/2
+            interface: GigabitEthernet0/0/0/2
+
+  # Configuring BGP under VRF : 
+  - path: 'openconfig-network-instance:/network-instances/network-instance[name="CustomerVRF"]/'
+    value:
+      protocols:
+        protocol:
+          - identifier: BGP
+            name: default # this points to the primary RIB , if you change it will created separate RIB
+            bgp:
+              global:
+                config:
+                  as: 65000
+                  router-id: 100.100.30.0
+                afi-safis:
+                  afi-safi:
+                    - afi-safi-name: openconfig-bgp-types:IPV4_UNICAST
+                      config:
+                        enabled: true
+              neighbors:
+                neighbor:
+                  - neighbor-address: 100.100.30.1
+                    config:
+                      peer-as: 65001
+                    afi-safis:
+                      afi-safi:
+                        - afi-safi-name: openconfig-bgp-types:IPV4_UNICAST
+                          config:
+                            enabled: true
+                    transport:
+                      config:
+                        local-address: 100.100.30.0
+
+  # Applying: (Unable to same using OpenConfig)
+  # 1) Import & Export Policy with eBGP Peer (CE)
+  # 2) Applying AS-Override (cuz both CEs are same AS) 
+  - path: 'Cisco-IOS-XR-ipv4-bgp-cfg:/bgp/instance[instance-name="default"]/instance-as[as="0"]/four-byte-as[as="65000"]/vrfs/vrf[vrf-name="CustomerVRF"]/vrf-neighbors/vrf-neighbor[neighbor-address="100.100.30.1"]/vrf-neighbor-afs/vrf-neighbor-af[af-name="ipv4-unicast"]/'
+    value:
+      route-policy-in: AcceptAny
+      route-policy-out: AcceptAny
+      as-override: true
+
+  # To configure Route Target import and export, we will use the Cisco Specific Yang "Cisco-IOS-XR-infra-rsi-cfg.yang": 
+  # Import Route target
+  - path: 'Cisco-IOS-XR-infra-rsi-cfg:/vrfs/vrf[vrf-name="CustomerVRF"]/afs/af[af-name="ipv4"][saf-name="unicast"][topology-name="default"]/Cisco-IOS-XR-ipv4-bgp-cfg:bgp/import-route-targets/route-targets/route-target[type="as"]'
+    value: 
+      as-or-four-byte-as:
+        as-xx: 0
+        as: 1
+        as-index: 1
+        stitching-rt: 0
+  # Export route target
+  - path: 'Cisco-IOS-XR-infra-rsi-cfg:/vrfs/vrf[vrf-name="CustomerVRF"]/afs/af[af-name="ipv4"][saf-name="unicast"][topology-name="default"]/Cisco-IOS-XR-ipv4-bgp-cfg:bgp/export-route-targets/route-targets/route-target[type="as"]'
+    value: 
+      as-or-four-byte-as:
+        as-xx: 0
+        as: 1
+        as-index: 1
+        stitching-rt: 0
+
+  # ================================================================================
+  # LLDP
+  # ================================================================================
+  - path: 'openconfig-lldp:/lldp'
+    value:  
+      # Uncomment if you want to enable LLDP globally 
+      # config:
+      #   enabled: true
+      interfaces:
+        interface:
+          - name: GigabitEthernet0/0/0/1
+            config:
+              name: GigabitEthernet0/0/0/1
+              enabled: true
+              
+deletes: 
+  # Enable interfaces - works by deleteing Shutdown 
+  - 'Cisco-IOS-XR-ifmgr-cfg:/interface-configurations/interface-configuration[active="act"][interface-name="GigabitEthernet0/0/0/1"]/shutdown'
+  - 'Cisco-IOS-XR-ifmgr-cfg:/interface-configurations/interface-configuration[active="act"][interface-name="GigabitEthernet0/0/0/2"]/shutdown'
+
+
+
+
+
+
+
+
+
+
+
+
