@@ -1,5 +1,11 @@
 # 02_xrv_pe1_gnmi.yml
 updates:
+  # ================================================================================
+  # Interfacece configuration
+  # ================================================================================
+  # Used the Cisco Yangs for this part as the OpenConfig yangs does not directly configure the interface IP, it has to be configured on 
+  # a sub-interface instead
+
   # Interface GigabitEthernet0/0/0/1 Config
   - path: 'Cisco-IOS-XR-ifmgr-cfg:/interface-configurations/interface-configuration[active="act"][interface-name="GigabitEthernet0/0/0/1"]'
     value:
@@ -24,7 +30,9 @@ updates:
   - path: 'Cisco-IOS-XR-ifmgr-cfg:/interface-configurations/interface-configuration[active="act"][interface-name="Loopback0"]'
     value:
       description: PE1_Loopback
-      interface-virtual: null
+      # Cisco's weird implementation dictates to enable some of configuration elements, you need to set it with Null,
+      # in this case to enable a Loopback, you need to set the interface-virtual to Null, dont worry , the Yang file mentions it
+      interface-virtual: [null]
       Cisco-IOS-XR-ipv4-io-cfg:ipv4-network:
         addresses:
           primary:
@@ -39,8 +47,11 @@ updates:
   - path: 'openconfig-network-instance:/network-instances/network-instance[name="default"]/protocols'
     value:
       protocol:
+        # Some identifiers and types are supported by the OpenConfig or vendor like "openconfig-policy-types:ISIS"
+        # you will be able to find them in separate Yang Files called types and so on
+        # So in this case , the platform may no recognise ISIS, you have to mention the Types Yang it belongs to
         identifier: openconfig-policy-types:ISIS
-        name: default # This is the RIB name rather than a VRF name 
+        name: default # This is the RIB name rather than a VRF name , under each Network-Instance (Global/VRF) you will find default RIB
         isis:
           global:
             config:
@@ -73,7 +84,7 @@ updates:
   # ================================================================================
   # MPLS & LDP
   # ================================================================================
-  # Note : since I am usinf IOS-XR 6.5.1 , only Cisco Yang models supported for MPLS & LDP
+  # Note : since I am using IOS-XR 6.5.1 , only Cisco Yang models supported for MPLS & LDP
   #        Openconfig Yangs are not supported 
   - path: 'Cisco-IOS-XR-mpls-ldp-cfg:/mpls-ldp'
     value:
@@ -140,7 +151,7 @@ updates:
   # Following 3 parts can be combined in one call, but i preferred to separate them to be easier to understand 
   
   # Configuring Allow all Route Policy , IOS-XR by default denies all if no Route
-  # Policy configured in eBGP session 
+  # Policy configured in eBGP session , cannot use the OpenConfig Yang for this policy , got a lot of issues
   - path: 'Cisco-IOS-XR-policy-repository-cfg:/routing-policy'
     value:
       route-policies:
@@ -157,6 +168,7 @@ updates:
             name: CustomerVRF
             route-distinguisher: 1:1
 
+  # initiate OpenConfig's BGP-IPv4 table under the "CustomerVRF" network instance
   - path: 'openconfig-network-instance:/network-instances/network-instance[name="CustomerVRF"]'
     value:
       config:
@@ -169,8 +181,6 @@ updates:
               protocol: BGP
               address-family: openconfig-types:IPV4
 
-
-  # Non OpenConfig available configuration
   # Doing redistribute Connected into VRF , using Cisco's Yangs, not available in OpenConfig: 
   - path: 'Cisco-IOS-XR-ipv4-bgp-cfg:/bgp/instance[instance-name="default"]/instance-as[as=0]/four-byte-as[as=65000]/vrfs/vrf[vrf-name="CustomerVRF"]/vrf-global/vrf-global-afs/vrf-global-af[af-name="ipv4-unicast"]/connected-routes'
     value: null
@@ -194,7 +204,7 @@ updates:
       protocols:
         protocol:
           - identifier: BGP
-            name: default # this points to the primary RIB , if you change it will created separate RIB
+            name: default # this points to the primary RIB under the VRF (Table belongs to CustomerVRF Network-Instance)
             bgp:
               global:
                 config:
