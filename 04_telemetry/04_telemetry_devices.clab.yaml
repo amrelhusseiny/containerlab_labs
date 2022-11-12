@@ -1,0 +1,24 @@
+# 03_ansible_iosxr_linux_containerlab_topology.clab.yaml
+name: 03_ansible_iosxr_linux_telemetry
+
+topology:
+  nodes:
+    influxDB:
+        kind: linux
+        image: influxdb:latest
+        ports:
+            - 8086:8086
+        env:
+            DOCKER_INFLUXDB_INIT_MODE: setup
+            DOCKER_INFLUXDB_INIT_USERNAME: influx_super
+            DOCKER_INFLUXDB_INIT_PASSWORD: 1020304050607
+            DOCKER_INFLUXDB_INIT_ORG: test_org
+            DOCKER_INFLUXDB_INIT_BUCKET: test_bucket
+            DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: "Df-veQgYbF i m40KZfT×q1zHUN3- - IRV4WTHdfXsK_ SUNCiX6171pjGZMHOgYl jmgG-BiwMprBLocpX4L82xg=="
+    telegraf:
+        kind: linux
+        image: telegraf:latest
+        binds:
+            - telegraf.conf:/etc/telegraf/telegraf.conf:ro
+        ports:
+            - 57000:57000
