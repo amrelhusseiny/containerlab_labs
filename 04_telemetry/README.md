@@ -289,12 +289,15 @@ containerlab inspect -a | grep influx
 Open your web browser to http://172.20.20.8:8086 with user influx_super and password 1020304050607 which we setup in the _04_telemetry.clab.yaml_.
 Go to Data Explorer , then choose filter as following in snapshot :
 1- this shows the interface counters of interface Ge0/0/1, but this accumalates, it does not show the current count only , as on Cisco interface counters just adds up over time, to show the diffirence only , go to step 2.
+
 <img width="674" alt="gnmi_network_automotion_part_3_003" src="https://user-images.githubusercontent.com/10320370/202875523-873c0c99-0d57-49ec-a472-301d8fcdbc33.png">
 
 2- Change view to 'script editor' and search 'filter function' for 'diffirence' function , add it, and remove the line with 'yield mean' now you only can see the increase/decrease of bytes count on the interface. 
+
 <img width="674" alt="gnmi_network_automotion_part_3_004" src="https://user-images.githubusercontent.com/10320370/202875528-a22c6ae7-7ad2-43cd-896a-3615da909330.png">
 
 Lets also have a look at the ISIS adjaceny neibors on PE1 , this is the benefit of gNMI, it provides more than just counters, you can see even the routing table on change.
+
 <img width="680" alt="gnmi_network_automotion_part_3_005" src="https://user-images.githubusercontent.com/10320370/202875535-7e21d667-9350-47c7-94ec-b1826574c55f.png">
 
 Thats it, you can tweek the telegraf.conf file to add your telemetry subscriptions which you can get from the yang files described in [Part 2 of this guide ](https://dev.to/amrelhusseiny/gnmi-network-automation-part-2-gnmi-configuration-ciscos-ios-xr-2fhj) .
