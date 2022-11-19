@@ -1,12 +1,14 @@
-# 03_ansible_iosxr_linux_containerlab_topology.clab.yaml
-name: 03_ansible_iosxr_linux_telemetry
+# 04_telemetry.clab.yaml
+name: 04_telemetry
 
 topology:
   nodes:
+    # InfluxDB ------------------------------------------------------------------------
     influxDB:
         kind: linux
         image: influxdb:latest
         ports:
+            ## This port will be used for Telegraf to connect to 
             - 8086:8086
         env:
             DOCKER_INFLUXDB_INIT_MODE: setup
@@ -15,10 +17,11 @@ topology:
             DOCKER_INFLUXDB_INIT_ORG: test_org
             DOCKER_INFLUXDB_INIT_BUCKET: test_bucket
             DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: "Df-veQgYbF i m40KZfT×q1zHUN3- - IRV4WTHdfXsK_ SUNCiX6171pjGZMHOgYl jmgG-BiwMprBLocpX4L82xg=="
+    # Telegraf ------------------------------------------------------------------------
     telegraf:
         kind: linux
         image: telegraf:latest
         binds:
-            - telegraf.conf:/etc/telegraf/telegraf.conf:ro
+            - template_config/telegraf.conf:/etc/telegraf/telegraf.conf:ro
         ports:
             - 57000:57000
